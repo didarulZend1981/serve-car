@@ -10,18 +10,18 @@
 ### index.js
 
     const express = require('express');
-const cors = require('cors');
-const { MongoClient, ServerApiVersion} = require('mongodb');
-require('dotenv').config()
-const app = express();
-const port = process.env.PORT || 5000;
+    const cors = require('cors');
+    const { MongoClient, ServerApiVersion} = require('mongodb');
+    require('dotenv').config()
+    const app = express();
+    const port = process.env.PORT || 5000;
 
-// middleware
-app.use(cors());
-app.use(express.json());
+    // middleware
+    app.use(cors());
+    app.use(express.json());
 
-// console.log(process.env.BD_USER);
-// console.log(process.env.BD_PASS);
+    // console.log(process.env.BD_USER);
+    // console.log(process.env.BD_PASS);
 
 
 // const uri = "mongodb://localhost:27017";
@@ -61,3 +61,69 @@ const uri = `mongodb+srv://${process.env.BD_USER}:${process.env.BD_PASS}@cluster
     app.listen(port, () => {
         console.log(`Car Doctor Server is running on port ${port}`)
     })
+
+
+
+### Service GET
+    const serviceCollection = client.db('carDoctor').collection('services');
+    app.get('/services', async (req, res) => {
+          const cursor = serviceCollection.find();
+          const result = await cursor.toArray();
+          res.send(result);
+        })
+### service single GET
+
+    app.get('/services/:id', async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: new ObjectId(id) }
+          const options = {
+            projection: { title: 1, price: 1, service_id: 1, img: 1 },
+          };
+          const result = await serviceCollection.findOne(query,options);
+          
+          res.send(result);
+
+          
+      })
+### BooKing 
+      app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const result = await bookingCollection.insertOne(booking);
+            res.send(result);
+        });
+
+
+    
+### BooKing  GET By EMAIL
+        app.get('/bookings', async (req, res) => {
+              console.log(req.query.email);
+              let query = {};
+              if (req.query?.email) {
+                  query = { email: req.query.email }
+              }
+              const result = await bookingCollection.find(query).toArray();
+              res.send(result);
+          })
+### BooKing  UPDATE By PATCH
+      app.patch('/bookings/:id', async (req, res) => {
+          const id = req.params.id;
+          const filter = { _id: new ObjectId(id) };
+          const updatedBooking = req.body;
+          console.log(updatedBooking);
+          const updateDoc = {
+              $set: {
+                  status: updatedBooking.status
+              },
+          };
+          const result = await bookingCollection.updateOne(filter, updateDoc);
+          res.send(result);
+      })
+### BooKing  DELETE
+        app.delete('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await bookingCollection.deleteOne(query);
+            res.send(result);
+        })
+  
