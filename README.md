@@ -126,4 +126,94 @@ const uri = `mongodb+srv://${process.env.BD_USER}:${process.env.BD_PASS}@cluster
             const result = await bookingCollection.deleteOne(query);
             res.send(result);
         })
+
+
+
+
+### cmd 
+       npm install jsonwebtoken
+### index.js
+    const jwt = require('jsonwebtoken');(incluede this line)
   
+### connection function 
+      //Auth related -(token check)
+        app.post('/jwt',async(req,res)=>{
+          const user = req.body;
+          console.log(user);
+          const token =jwt.sign(user,'secret',{expiresIn:'1h'})
+          res.send(token)
+        })
+### then client site---
+    login.jsx
+    import axios from 'axios';
+        signIn(email, password)
+   .then(result => {
+              const loggedInUser =result.user;
+              console.log('check this line',loggedInUser);
+              ///this line start
+                  const user ={ email };
+                
+                  axios.post('http://localhost:5000/jwt',user)
+                  .then(res=>{
+                    console.log(res.data);
+                  })
+              ////ending line
+
+
+
+
+
+
+            // console.log("login tyme",result.user.displayName);
+            // setLoading(false);
+            // navigate(location?.state?location.state:'/');
+            
+            // toast.success("Signin Successful {result.user.displayName}")
+
+            
+        })
+        .catch(error => {
+          toast.error('your email and password should match with the registered email and password If it doesnt match')
+                
+        })
+
+#### npm install cookie-parser (60-4 JWT Token Secret And Set Token To Http Only Cookie)
+    1step  .env
+          ACCESS_TOKEN_SECRET=70fce714172fedeb96b2efc20559609fe9272135a29ea4feed84a09decdb8e480046f77e3c3a9cbe361972cfce4632c0b6eb0f656b414de766ed96c39c473100
+    2 step
+          const cookieParser = require('cookie-parser');
+          // middleware
+          app.use(cookieParser());
+
+          app.post('/jwt',async(req,res)=>{
+              const user = req.body;
+              console.log(user);
+           // new line
+              const token =jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1h'})
+              res
+              .cookie('token',token,{
+                httpOnly:true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+              })
+              .send({success:true})
+            // end line
+
+            })
+
+####
+      booking-
+
+        app.get('/bookings', async (req, res) => {
+              console.log(req.query.email);
+              console.log('ttttt token', req.cookies.token)//only using this line
+              let query = {};
+              if (req.query?.email) {
+                  query = { email: req.query.email }
+              }
+              const result = await bookingCollection.find(query).toArray();
+              res.send(result);
+        })
+
+        ####60-6 (Recap) JWT Token Http Only Cookie And Withcredentials
+      
